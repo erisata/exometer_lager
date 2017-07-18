@@ -22,40 +22,44 @@
 -compile([{parse_transform, lager_transform}]).
 -export([init/1, handle_call/2, handle_event/2, handle_info/2, terminate/2,
     code_change/3]).
--include("lager.hrl").
+
+-export([simple_test/0]).
+-include_lib("lager/include/lager.hrl").
+
 
 %%% ============================================================================
 %%% Internal state of the module.
 %%% ============================================================================
 
 -record(state, {
-    host                :: string(),
-    port                :: integer(),
-    connection_timeout  :: integer(),
-    socket              :: term() | undefined,
-    messages            :: list(),
-    graphite_delay      :: integer()
 }).
+
+
 
 %%% ============================================================================
 %%% Callbacks for gen_event.
 %%% ============================================================================
 
 %% @doc
-%%
+%% Sets up state passed from sys.config.
 %%
 init(_) ->
-    lager:info("Custom lager backend (handler) initialized"),
-    ok.
+    io:format("INITIALIZED"),
+    State = #state{},
+    {ok, State}.
 
 
 %% @doc
-%% Initializes the reporter and starts message sending loop.
+%%
 %%
 handle_event({log, Message}, State) ->
+    {_, _, _, Type, _Timestamp1, _Timestamps2, _Text} = Message,
+    ok = exometer:update_or_create([eproc_core, lager, Type], 1, histogram, []),
+    io:format("got a message: ~p", [Message]),
     {ok, State};
 
-handle_event(_Event, State) ->
+handle_event(Event, State) ->
+    io:format("Unknown event: ~p", [Event]),
     {ok, State}.
 
 
@@ -85,3 +89,29 @@ code_change(_OldVsn, State, _Extra) ->
 %%
 terminate(_Reason, _State) ->
     ok.
+
+simple_test() ->
+    lager:warning("Serious warning").
+
+%%% ============================================================================
+%%% Test cases for internal functions.
+%%% ============================================================================
+
+-ifdef(TEST).
+-include_lib("eunit/include/eunit.hrl").
+
+%%
+%%  Check, if pickle message is created properly.
+%%
+create_message_test_() ->
+    [
+        {"test_case1",
+            fun() ->
+                io:format("test-case1 is running")
+            end
+        }
+    ].
+
+
+
+-endif.
