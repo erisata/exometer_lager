@@ -22,10 +22,10 @@
 -compile([{parse_transform, lager_transform}]).
 -export([init/1, handle_call/2, handle_event/2, handle_info/2, terminate/2,
     code_change/3]).
-
--export([simple_test/0]).
 -include_lib("lager/include/lager.hrl").
 
+-define(APP, exometer_lager).
+-define(DEFAULT_INTEGRATED_PROJECT_NAME, exometer_lager).
 
 %%% ============================================================================
 %%% Internal state of the module.
@@ -40,31 +40,32 @@
 %%% Callbacks for gen_event.
 %%% ============================================================================
 
-%% @doc
-%% Sets up state passed from sys.config.
+%%  @doc
+%%  Sets up state passed from sys.config.
 %%
 init(_) ->
-    io:format("INITIALIZED"),
     State = #state{},
     {ok, State}.
 
 
-%% @doc
-%%
+%%  @doc
+%%  Handles lager:Severity log message.
+%%  Warning: don't use lager:Severity here as it will create a infinite loop.
 %%
 handle_event({log, Message}, State) ->
     {_, _, _, Type, _Timestamp1, _Timestamps2, _Text} = Message,
-    ok = exometer:update_or_create([eproc_core, lager, Type], 1, histogram, []),
-    io:format("got a message: ~p", [Message]),
+    ProjectName = application:get_env(?APP, integrated_project_name,
+        ?DEFAULT_INTEGRATED_PROJECT_NAME),
+    %% TODO: when exometer doesn't find metric, it produces error message.
+    ok = exometer:update_or_create([ProjectName, lager, Type], 1, histogram, []),
     {ok, State};
 
-handle_event(Event, State) ->
-    io:format("Unknown event: ~p", [Event]),
+handle_event(_Event, State) ->
     {ok, State}.
 
 
-%% @doc
-%% Unused.
+%%  @doc
+%%  Unused.
 %%
 handle_call(_Request, State) ->
     {ok, ok, State}.
@@ -89,29 +90,3 @@ code_change(_OldVsn, State, _Extra) ->
 %%
 terminate(_Reason, _State) ->
     ok.
-
-simple_test() ->
-    lager:warning("Serious warning").
-
-%%% ============================================================================
-%%% Test cases for internal functions.
-%%% ============================================================================
-
--ifdef(TEST).
--include_lib("eunit/include/eunit.hrl").
-
-%%
-%%  Check, if pickle message is created properly.
-%%
-create_message_test_() ->
-    [
-        {"test_case1",
-            fun() ->
-                io:format("test-case1 is running")
-            end
-        }
-    ].
-
-
-
--endif.
