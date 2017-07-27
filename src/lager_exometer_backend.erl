@@ -26,7 +26,7 @@
 -include_lib("lager/include/lager.hrl").
 
 -define(APP, exometer_lager).
--define(DEFAULT_APP_PATH, exometer_lager).
+-define(DEFAULT_APP_PATH, [exometer_lager]).
 
 %%% ============================================================================
 %%% Internal state of the module.

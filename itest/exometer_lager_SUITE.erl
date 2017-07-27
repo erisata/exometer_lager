@@ -29,7 +29,7 @@
 ]).
 
 -define(APP, exometer_lager).
--define(DEFAULT_INTEGRATED_PROJECT_NAME, exometer_lager).
+-define(DEFAULT_APP_PATH, [exometer_lager]).
 
 %%% ============================================================================
 %%% Callbacks for `common_test`
