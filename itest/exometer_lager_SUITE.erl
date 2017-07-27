@@ -15,7 +15,7 @@
 %\--------------------------------------------------------------------
 
 %%% @doc
-%%% Common Tests for `exometer_lager_reporter` module.
+%%% Common Tests for `exometer_lager_backend` module.
 %%%
 -module(exometer_lager_SUITE).
 -compile([{parse_transform, lager_transform}]).
@@ -44,7 +44,7 @@ all() -> [
 
 
 %%  @doc
-%%  Test case test_message_sending initialization.
+%%  Test case test_statistics_pushing initialization.
 %%
 init_per_testcase(test_statistics_pushing, Config) ->
     application:load(lager),
@@ -54,7 +54,7 @@ init_per_testcase(test_statistics_pushing, Config) ->
 
 
 %%  @doc
-%%  Test case test_message_sending ending.
+%%  Test case test_statistics_pushing ending.
 %%
 end_per_testcase(test_statistics_pushing, _Config) ->
     ok.
@@ -71,7 +71,7 @@ end_per_testcase(test_statistics_pushing, _Config) ->
 %%
 test_statistics_pushing(_Config) ->
     application:ensure_all_started(exometer_lager),
-    ProjectName = application:get_env(?APP, integrated_project_name,
+    AppPath = application:get_env(?APP, app_path,
         ?DEFAULT_INTEGRATED_PROJECT_NAME),
     %
     % These lager calls should add a metrics to exometer.
@@ -87,24 +87,24 @@ test_statistics_pushing(_Config) ->
     timer:sleep(500),
     %
     % Check if stats created.
-    Entries = exometer:find_entries([ProjectName]),
+    Entries = exometer:find_entries(AppPath),
     StatNames = [ Name || {Name, _Type, enabled} <- Entries ],
     true = length(StatNames) > 0,
-    true = lists:member([ProjectName, lager, debug], StatNames),
-    true = lists:member([ProjectName, lager, info], StatNames),
-    true = lists:member([ProjectName, lager, notice], StatNames),
-    true = lists:member([ProjectName, lager, warning], StatNames),
-    true = lists:member([ProjectName, lager, error], StatNames),
-    true = lists:member([ProjectName, lager, critical], StatNames),
-    true = lists:member([ProjectName, lager, alert], StatNames),
-    true = lists:member([ProjectName, lager, emergency], StatNames),
+    true = lists:member(lists:append(AppPath, [lager, debug]    ), StatNames),
+    true = lists:member(lists:append(AppPath, [lager, info]     ), StatNames),
+    true = lists:member(lists:append(AppPath, [lager, notice]   ), StatNames),
+    true = lists:member(lists:append(AppPath, [lager, warning]  ), StatNames),
+    true = lists:member(lists:append(AppPath, [lager, error]    ), StatNames),
+    true = lists:member(lists:append(AppPath, [lager, critical] ), StatNames),
+    true = lists:member(lists:append(AppPath, [lager, alert]    ), StatNames),
+    true = lists:member(lists:append(AppPath, [lager, emergency]), StatNames),
     %
     % Check, if values are ok.
-    {ok, _} = exometer:get_value([ProjectName, lager, debug]),
-    {ok, _} = exometer:get_value([ProjectName, lager, info]),
-    {ok, _} = exometer:get_value([ProjectName, lager, notice]),
-    {ok, _} = exometer:get_value([ProjectName, lager, warning]),
-    {ok, _} = exometer:get_value([ProjectName, lager, error]),
-    {ok, _} = exometer:get_value([ProjectName, lager, critical]),
-    {ok, _} = exometer:get_value([ProjectName, lager, alert]),
-    {ok, _} = exometer:get_value([ProjectName, lager, emergency]).
+    {ok, _} = exometer:get_value(lists:append(AppPath, [lager, debug]    )),
+    {ok, _} = exometer:get_value(lists:append(AppPath, [lager, info]     )),
+    {ok, _} = exometer:get_value(lists:append(AppPath, [lager, notice]   )),
+    {ok, _} = exometer:get_value(lists:append(AppPath, [lager, warning]  )),
+    {ok, _} = exometer:get_value(lists:append(AppPath, [lager, error]    )),
+    {ok, _} = exometer:get_value(lists:append(AppPath, [lager, critical] )),
+    {ok, _} = exometer:get_value(lists:append(AppPath, [lager, alert]    )),
+    {ok, _} = exometer:get_value(lists:append(AppPath, [lager, emergency])).

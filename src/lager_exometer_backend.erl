@@ -16,6 +16,7 @@
 
 %%% @doc
 %%% Exometer lager: creates exometer metrics out of lager outputs.
+%%% To use this exometer_lager, add it as a lager handler in sys.config.
 %%%
 -module(lager_exometer_backend).
 -behaviour(gen_event).
@@ -25,7 +26,7 @@
 -include_lib("lager/include/lager.hrl").
 
 -define(APP, exometer_lager).
--define(DEFAULT_INTEGRATED_PROJECT_NAME, exometer_lager).
+-define(DEFAULT_APP_PATH, exometer_lager).
 
 %%% ============================================================================
 %%% Internal state of the module.
@@ -54,10 +55,10 @@ init(_) ->
 %%
 handle_event({log, Message}, State) ->
     {_, _, _, Type, _Timestamp1, _Timestamps2, _Text} = Message,
-    ProjectName = application:get_env(?APP, integrated_project_name,
-        ?DEFAULT_INTEGRATED_PROJECT_NAME),
-    %% TODO: when exometer doesn't find metric, it produces error message.
-    ok = exometer:update_or_create([ProjectName, lager, Type], 1, histogram, []),
+    AppPath = application:get_env(?APP, app_path,
+        ?DEFAULT_APP_PATH),
+    % TODO: when exometer doesn't find metric, it produces error message.
+    ok = exometer:update_or_create(lists:append(AppPath, [lager, Type]), 1, histogram, []),
     {ok, State};
 
 handle_event(_Event, State) ->
