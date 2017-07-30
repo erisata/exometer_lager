@@ -72,7 +72,7 @@ end_per_testcase(test_statistics_pushing, _Config) ->
 test_statistics_pushing(_Config) ->
     application:ensure_all_started(exometer_lager),
     AppPath = application:get_env(?APP, app_path,
-        ?DEFAULT_INTEGRATED_PROJECT_NAME),
+        ?DEFAULT_APP_PATH),
     %
     % These lager calls should add a metrics to exometer.
     lager:debug("TEST"),
