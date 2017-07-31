@@ -33,6 +33,7 @@
 %%% ============================================================================
 
 -record(state, {
+    levels :: list()
 }).
 
 
@@ -44,8 +45,12 @@
 %%  @doc
 %%  Sets up state passed from sys.config.
 %%
-init(_) ->
-    State = #state{},
+init([]) ->
+    State = #state{levels = [debug, info, notice, warning, error, critical, alert, emergency]},
+    {ok, State};
+
+init([{level, LogLevels}]) ->
+    State = #state{levels = LogLevels},
     {ok, State}.
 
 
@@ -53,12 +58,17 @@ init(_) ->
 %%  Handles lager:Severity log message.
 %%  Warning: don't use lager:Severity here as it will create a infinite loop.
 %%
-handle_event({log, Message}, State) ->
+handle_event({log, Message}, State = #state{levels = Levels}) ->
     {_, _, _, Type, _Timestamp1, _Timestamps2, _Text} = Message,
-    AppPath = application:get_env(?APP, app_path,
-        ?DEFAULT_APP_PATH),
-    % TODO: when exometer doesn't find metric, it produces error message.
-    ok = exometer:update_or_create(lists:append(AppPath, [lager, Type]), 1, histogram, []),
+    case lists:member(Type, Levels) of
+        true ->
+            AppPath = application:get_env(?APP, app_path,
+                ?DEFAULT_APP_PATH),
+            % TODO: when exometer doesn't find metric, it produces a error message.
+            ok = exometer:update_or_create(lists:append(AppPath, [lager, Type]), 1, histogram, []);
+        false ->
+            ok
+    end,
     {ok, State};
 
 handle_event(_Event, State) ->
