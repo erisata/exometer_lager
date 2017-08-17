@@ -32,7 +32,7 @@
 -define(DEFAULT_APP_PATH, [exometer_lager]).
 
 %%% ============================================================================
-%%% Callbacks for `common_test`
+%%% Callbacks for `common_test'
 %%% ============================================================================
 
 %%  @doc
@@ -107,4 +107,7 @@ test_statistics_pushing(_Config) ->
     {ok, _} = exometer:get_value(lists:append(AppPath, [lager, error]    )),
     {ok, _} = exometer:get_value(lists:append(AppPath, [lager, critical] )),
     {ok, _} = exometer:get_value(lists:append(AppPath, [lager, alert]    )),
-    {ok, _} = exometer:get_value(lists:append(AppPath, [lager, emergency])).
+    {ok, _} = exometer:get_value(lists:append(AppPath, [lager, emergency])),
+    ok.
+
+

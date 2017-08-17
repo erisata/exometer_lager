@@ -15,7 +15,7 @@
 %\--------------------------------------------------------------------
 
 {application, exometer_lager, [
-    {description, "Exometer lager: creates exometer metrics out of lager outputs."},
+    {description, "Provides Lager metrics as Exometer entries."},
     {vsn, git},
     {applications, [
         kernel,

@@ -21,12 +21,11 @@
 -module(lager_exometer_backend).
 -behaviour(gen_event).
 -compile([{parse_transform, lager_transform}]).
--export([init/1, handle_call/2, handle_event/2, handle_info/2, terminate/2,
-    code_change/3]).
--include_lib("lager/include/lager.hrl").
+-export([init/1, handle_call/2, handle_event/2, handle_info/2, terminate/2, code_change/3]).
 
 -define(APP, exometer_lager).
--define(DEFAULT_APP_PATH, [exometer_lager]).
+-define(DEFAULT_APP_PATH, [?APP]).
+
 
 %%% ============================================================================
 %%% Internal state of the module.
@@ -56,16 +55,13 @@ init([{level, LogLevels}]) ->
 
 %%  @doc
 %%  Handles lager:Severity log message.
-%%  Warning: don't use lager:Severity here as it will create a infinite loop.
 %%
 handle_event({log, Message}, State = #state{levels = Levels}) ->
     {_, _, _, Type, _Timestamp1, _Timestamps2, _Text} = Message,
     case lists:member(Type, Levels) of
         true ->
-            AppPath = application:get_env(?APP, app_path,
-                ?DEFAULT_APP_PATH),
-            % TODO: when exometer doesn't find metric, it produces a error message.
-            ok = exometer:update_or_create(lists:append(AppPath, [lager, Type]), 1, histogram, []);
+            AppPath = application:get_env(?APP, app_path, ?DEFAULT_APP_PATH),
+            ok = exometer:update_or_create(AppPath ++ [lager, Type], 1, histogram, []);
         false ->
             ok
     end,
@@ -101,3 +97,5 @@ code_change(_OldVsn, State, _Extra) ->
 %%
 terminate(_Reason, _State) ->
     ok.
+
+
