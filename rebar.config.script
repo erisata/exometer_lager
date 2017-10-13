@@ -14,16 +14,14 @@
 %| limitations under the License.
 %\--------------------------------------------------------------------
 
-[
-    {exometer_lager, [
-        {app_path, [exometer_lager, lager]}
-    ]},
-    {lager, [
-        {handlers, [
-            {lager_console_backend, [{level, info}]},
-            {lager_exometer_backend, []},
-            {lager_file_backend, [{file, "error.log"}]},
-            {lager_file_backend, [{file, "console.log"}, {level, info}]}
-        ]}
-    ]}
-].
+case erlang:function_exported(rebar3, main, 1) of
+    true -> % rebar3
+        CONFIG;
+    false -> % rebar 2.x
+        RefToTag = fun
+            ({App, Vsn, {git, Url, {ref, Ref}}}) -> {App, Vsn, {git, Url, {tag, Ref}}};
+            (Other                             ) -> Other
+        end,
+        {value, {deps, Deps}, ConfigWoDeps} = lists:keytake(deps, 1, CONFIG),
+        [{deps, lists:map(RefToTag, Deps)} | ConfigWoDeps]
+end.
