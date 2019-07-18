@@ -47,8 +47,8 @@ all() -> [
 %%  Test case test_statistics_pushing initialization.
 %%
 init_per_testcase(test_statistics_pushing, Config) ->
-    application:load(lager),
-    application:load(exometer_core),
+    ok = exometer_lager_itest_util:ensure_deps(),
+    ok = application:set_env(exometer_lager, app_path, [exometer_lager, lager], [{persistent, true}]),
     {ok, Apps} = application:ensure_all_started(exometer_lager),
     [{exometer_lager_apps, Apps} | Config].
 

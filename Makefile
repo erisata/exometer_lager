@@ -14,9 +14,9 @@
 #| limitations under the License.
 #\--------------------------------------------------------------------
 
-REBAR=rebar
+REBAR=rebar3
 
-all: compile-all
+all: compile
 
 deps:
 	$(REBAR) get-deps
@@ -24,31 +24,40 @@ deps:
 compile:
 	$(REBAR) compile
 
-compile-all:
-	$(REBAR) compile --recursive
+xref:
+	$(REBAR) xref
 
-check: test itest
+check: test itest xref
 
-test: compile
-	mkdir -p logs
-	$(REBAR) eunit skip_deps=true verbose=1
+test:
+	$(REBAR) eunit --verbose
 
-itest: compile
-	mkdir -p logs
-	env ERL_LIBS=deps ERL_AFLAGS='-config test/sys' $(REBAR) ct skip_deps=true $(CT_ARGS) || grep Testing logs/raw.log
+itest:
+	$(REBAR) ct $(CT_ARGS)
 
-doc:
-	$(REBAR) doc
+docs:
+	$(REBAR) as docs edoc
 
-clean: clean-itest
+clean:
 	$(REBAR) clean
 
-clean-itest:
-	rm -f test/*.beam
+clean-all:
+	$(REBAR) clean --all
 
-clean-all: clean-itest
-	$(REBAR) clean --recursive
+#
+#  Rebar hooks
+#
+rebar_ct_post:
+	@make -C _build/test/logs -f ../../../Makefile rebar_ct_post_logs
 
-.PHONY: all deps compile compile-all check test itest doc clean clean-all clean-itest
+rebar_ct_post_logs:
+	@rm -rf logs && ln -vs $(shell find . -name "ct_run.*" | sort | tail -n 1)/logs/ logs
+
+rebar_edoc_post:
+	@sed -i 's|/blob/[^/]*/|/blob/master/|g' README.md
+	@sed -i "s|`pwd`/||g" doc/*.md
+
+
+.PHONY: all deps compile check test itest xref docs clean clean-all
 
 
