@@ -61,7 +61,7 @@ handle_event({log, Message}, State = #state{levels = Levels}) ->
     case lists:member(Type, Levels) of
         true ->
             AppPath = application:get_env(?APP, app_path, ?DEFAULT_APP_PATH),
-            try exometer:update_or_create(AppPath ++ [lager, Type], 1, histogram, []) of
+            try exometer:update_or_create(AppPath ++ [lager, Type], 1, spiral, []) of
                 ok -> ok
             catch
                 _:_ -> ok % Ignore the situations, when the exometer is not started yet.
